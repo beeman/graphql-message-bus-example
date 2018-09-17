@@ -1,17 +1,18 @@
 import { GraphQLServer } from 'graphql-yoga'
+import { gql } from 'apollo-server'
+import { pubsub } from './pub-sub'
+import { typeDefsMessageBus, MessageBusMutation, MessageBusSubscription } from './message-bus'
 
-const typeDefs = `
-  type Query {
-    hello(name: String): String
-  }
+const typeDefs = gql`
+    ${typeDefsMessageBus}
 `
 
 const resolvers = {
-  Query: {
-    hello: (_, { name }) => {
-      const returnValue = !name ? `Hello ${name || 'World!'}` : null
-      return returnValue
-    },
+  Mutation: {
+    ...MessageBusMutation,
+  },
+  Subscription: {
+    ...MessageBusSubscription,
   },
 }
 
@@ -21,3 +22,7 @@ const server = new GraphQLServer({
 })
 
 server.start(() => console.log('Server is running on http://localhost:4000'))
+
+pubsub.subscribe('MESSAGE', (args) => {
+  console.log('', ...args)
+})
